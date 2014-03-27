@@ -10,4 +10,4 @@ void InitAll(Handle<Object> exports) {
   IESoRWrap::Init(exports);
 }
 
-NODE_MODULE(iesorworld, InitAll)
+NODE_MODULE(nodeiesor, InitAll)

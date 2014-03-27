@@ -1,8 +1,8 @@
 {
   "name": "node-iesor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node.js wrapper around a C++ IESoR simulation. Indirectly Encoded SodaRace (IESoR) is a research domain for simulating Sodarace inspired two-dimensional ambulating creatures. ",
-  "main": "node-iesor/build/Release/node-iesor.node",
+  "main": "node-iesor/build/Release/nodeiesor.node",
   "scripts": {
     "install": "cd node-iesor/ && node-gyp configure build"
   },

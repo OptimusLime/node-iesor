@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "node-iesor",
+      "target_name": "nodeiesor",
       "sources": [ 
 	      "iesor-world.cpp",
 	      "src/worldWrapper.h", 
