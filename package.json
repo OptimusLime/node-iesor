@@ -1,0 +1,30 @@
+{
+  "name": "node-iesor",
+  "version": "0.0.1",
+  "description": "Node.js wrapper around a C++ IESoR simulation. Indirectly Encoded SodaRace (IESoR) is a research domain for simulating Sodarace inspired two-dimensional ambulating creatures. ",
+  "main": "node-iesor/build/Release/node-iesor.node",
+  "scripts": {
+    "install": "node-gyp configure build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/OptimusLime/node-iesor.git"
+  },
+  "keywords": [
+    "IESoR",
+    "Neural",
+    "Networks",
+    "ANN",
+    "NEAT",
+    "NSGA",
+    "Evolution",
+    "Neuroevolution",
+    "HyperNEAT"
+  ],
+  "author": "Paul Szerlip",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OptimusLime/node-iesor/issues"
+  },
+  "homepage": "https://github.com/OptimusLime/node-iesor"
+}

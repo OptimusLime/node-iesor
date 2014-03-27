@@ -1,0 +1,10 @@
+{
+"name" : "testIESOR",
+"version":"0.0.1",
+"dependencies" : 
+{
+"neatjs" : "*",
+"cppnjs" : "*"
+}
+
+}
