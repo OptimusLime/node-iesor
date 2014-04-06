@@ -41,6 +41,11 @@ class IESoRWorld
 		Bone* addDistanceJoint(std::string sourceID, std::string targetID, Json::Value props);
 		Muscle* addMuscleJoint(std::string sourceID, std::string targetID, Json::Value props);
 
+		void clearWorld();
+
+		//return the loaded body center of mass -- as a stringified json value
+		std::string bodyCenterOfMass();
+		Json::Value jBodyCenterOfMass();
 
 
 	private:
@@ -54,12 +59,17 @@ class IESoRWorld
 		double maxFrameSize;
 		b2Vec2 currentSize;
 
+		void initializeWorld();
+
 		double modifyFrameTime(double fTime);
 
 		//keep a list of body identifiers
 		std::vector<PhysicsID*> bodyList;
 		//keep a list of shape identifiers
 		std::vector<PhysicsID*> shapeList;
+
+		//keep a reference to loaded bodies
+		std::map<std::string, b2Body*> loadedBodyMap;
 
 		//keep a reference to every body according to ID
 		std::map<std::string, b2Body*> bodyMap;

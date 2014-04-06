@@ -73,11 +73,11 @@ int Network::activationToInteger(std::string activationType)
 		return StepFunction;
 	else if(activationType == "Sine")
 		return Sine;
-	else if(activationType == "input")
+	else if(activationType == "Linear")
 		return Linear;
 	else
-	{
-		printf("No known activation type!");
+	{ 
+		printf("No known activation type sent to network. Choose from [BipolarSigmoid, Gaussian, Sine, Linear] -- not : %s\n", activationType.c_str());
 		throw 1;
 	}
 }
@@ -121,7 +121,7 @@ void Network::init(Json::Value jsonNetwork)
 	//we loop through all our ordered nodes to create a node execution list
 	for (int nIx =0; nIx < nodeOrderJSON.size(); nIx++)
 	{
-		printf("In order: %d \n",  nodeOrderJSON[nIx].asInt());
+		// printf("In order: %d \n",  nodeOrderJSON[nIx].asInt());
 		nodeOrder[nIx] = nodeOrderJSON[nIx].asInt();
 	}
 
@@ -130,7 +130,7 @@ void Network::init(Json::Value jsonNetwork)
 	//we loop through all our ordered nodes to create a node execution list
 	for (int nIx =0; nIx < weightsJSON.size(); nIx++)
 	{
-		printf("Weight: %f \n", weightsJSON[nIx].asDouble());
+		// printf("Weight: %f \n", weightsJSON[nIx].asDouble());
 		weights[nIx] = weightsJSON[nIx].asDouble();
 	}
 
@@ -155,14 +155,14 @@ void Network::init(Json::Value jsonNetwork)
 		//we loop through all our registers to query
 		for (int nIx =0; nIx < registerList.size(); nIx++)
 		{
-			printf("Register sampling: %d \n",  registerList[nIx].asInt());
+			// printf("Register sampling: %d \n",  registerList[nIx].asInt());
 			registerArrays[i][nIx] = registerList[nIx].asInt();
 		}
 
 		//do the same for the weight indices
 		for (int nIx =0; nIx < weightList.size(); nIx++)
 		{
-			printf("Weight index: %d \n",  weightList[nIx].asInt());
+			// printf("Weight index: %d \n",  weightList[nIx].asInt());
 			weightArrays[i][nIx] = weightList[nIx].asInt();
 		}
 

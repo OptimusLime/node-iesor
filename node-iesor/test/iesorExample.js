@@ -24,7 +24,6 @@ var s = iWorld.loadBodyFromNetwork(tgString);//sGenome.toString());
 var body = JSON.parse(s);
 console.log("Generated body: ", body);
 
-
 //simulate for 1/2 second
 var simTimeMS = 500;
 

@@ -37,10 +37,15 @@ void IESoRWrap::Init(Handle<Object> exports) {
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("getWorldDrawList"),
       FunctionTemplate::New(GetWorldDrawList)->GetFunction());
-  
 
+  //for reseting worlds
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("clearWorld"),
+      FunctionTemplate::New(ClearWorld)->GetFunction());
 
-  
+  //grab the current center of mass of a loaded object -- for fitness eval!
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("bodyCenterOfMass"),
+      FunctionTemplate::New(BodyCenterOfMass)->GetFunction());
+
 
   constructor = Persistent<Function>::New(tpl->GetFunction());
   exports->Set(String::NewSymbol("iesorWorld"), constructor);
@@ -160,6 +165,40 @@ Handle<Value> IESoRWrap::GetWorldDrawList(const Arguments& args) {
 
   //we send back the info as a string (again json object -- figure out later what to do about this)
   return scope.Close(String::New(worldDraw.c_str()));
+}
+
+Handle<Value> IESoRWrap::ClearWorld(const Arguments& args) {
+  
+  HandleScope scope;
+
+  //unwrap our shiny new price
+  IESoRWrap* obj = ObjectWrap::Unwrap<IESoRWrap>(args.This());
+  
+  //get the directory
+  IESoRDirector* director = obj->Director();
+
+  //no arguments, just destroy the worldly information, mwahahaha
+  director->World()->clearWorld();
+
+  return scope.Close(Null());
+}
+
+
+Handle<Value> IESoRWrap::BodyCenterOfMass(const Arguments& args) {
+  
+  HandleScope scope;
+
+  //unwrap our shiny new price
+  IESoRWrap* obj = ObjectWrap::Unwrap<IESoRWrap>(args.This());
+  
+  //get the directory
+  IESoRDirector* director = obj->Director();
+
+  //no arguments, just grab the loaded center of mass -- or empty -- i don't care
+  std::string com = director->World()->bodyCenterOfMass();
+
+  //in the future, we might have multiple bodies in a world -- prob not though
+  return scope.Close(String::New(com.c_str()));
 }
 
 

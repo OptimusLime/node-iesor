@@ -393,10 +393,10 @@ string jsonConnToString(Json::Value conn)
 
     //now we simply choose the maximum connection chain -- or the first one with the max found
     Json::Value* maxCGL;
-	printf(" Conn chains: %i \n", connectionChains.size());
+	// printf(" Conn chains: %i \n", connectionChains.size());
 	for(int i=0; i < connectionChains.size(); i++)
 	{
-		printf(" Conn chain %i size: %i \n", i, connectionChains[i].size());
+		// printf(" Conn chain %i size: %i \n", i, connectionChains[i].size());
 
 		if(connectionChains[i].size() == maxChain)
 		{
@@ -421,7 +421,7 @@ string jsonConnToString(Json::Value conn)
 	//use map to prevent duplicates
 	map<string, int> hiddenAlready;
 
-	printf("Conn final: %i \n", connections.size());
+	// printf("Conn final: %i \n", connections.size());
 
     //make sure points are distinct, and no dupes -- we only need to do this once
 	for(int i=0; i < connections.size(); i++)
@@ -522,6 +522,9 @@ Json::Value iesorBody::buildBody()//Json::Value compareBody)
 	// Json::Value allInputs = compareBody["allBodyInputs"];
 	int oCount = 0;
 
+	// printf("Starting new genome\n\n\n");
+
+
     //Dictionary<string, List<PointF>> pointsChecked = new Dictionary<string, List<PointF>>();
     //List<PointF> pList;
     int src, tgt;
@@ -537,6 +540,8 @@ Json::Value iesorBody::buildBody()//Json::Value compareBody)
 
             if (p1 != p2 && (abs(xyPoint.x - otherPoint.x) < xDistanceThree && abs(xyPoint.y - otherPoint.y) < yDistanceThree))
             {
+
+
                 double* outs = queryCPPNOutputs(xyPoint.x, xyPoint.y, otherPoint.x, otherPoint.y, maxXDistanceCenter(xyPoint, otherPoint),  minYDistanceGround(xyPoint, otherPoint));
                 double weight = outs[0];
 
@@ -568,7 +573,20 @@ Json::Value iesorBody::buildBody()//Json::Value compareBody)
 
                     if (outs[1] > 0)
                     {
-							
+
+                    	// bool xDif = (abs(xyPoint.x - otherPoint.x) > 0);
+                    	// bool yDif =  (abs(xyPoint.y - otherPoint.y) > 0);
+
+						// printf("Successfull conn (%s, %s) - from %s, to: %s\n", 
+						// 	(xDif ? "XDIF" : "    "),
+						// 	(yDif ? "YDIF" : "    "),
+						//   xyPoint.toString().c_str(), 
+						//   otherPoint.toString().c_str());
+
+						// printf("Successfull conn- from %s, to: %s\n", xyPoint.toString().c_str(), otherPoint.toString().c_str());
+
+
+
 						//made it to connection, save our outputs
 						Json::Value cppnOutputs(Json::arrayValue);
 						for(int c=0; c < network->OutputCount(); c++)

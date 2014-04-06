@@ -37,6 +37,12 @@ string toString(int number)
     convert << number;      // insert the textual representation of 'number' in the characters in the stream
     return convert.str();
 }
+string dubString(double number)
+{
+    ostringstream convert;   // stream used for the conversion
+    convert << number;      // insert the textual representation of 'number' in the characters in the stream
+    return convert.str();
+}
 
 #define SIZE 1024
 
@@ -236,8 +242,7 @@ std::string IESoRWorld::loadDataFile(std::string dataName)
 	return get_file_contents(filePath.c_str());
 }
 
-
-IESoRWorld::IESoRWorld()
+void IESoRWorld::initializeWorld()
 {
 	this->interpolation =0;
 	accumulator = 0;
@@ -248,14 +253,25 @@ IESoRWorld::IESoRWorld()
 	//if we need to simulate a certain amount of time, we refuse above a certain amount
 	maxFrameSize = .35;
 
+	//keep a list of shape and body identifiers
+	this->bodyList.clear();
+	this->shapeList.clear();
 
-	//this->bodyList = new vector<PhysicsID*>();
-	//this->shapeList = new vector<PhysicsID*>();
-	//this->bodyList = new Json::Value(Json::arrayValue);
-	//this->shapeList = new Json::Value(Json::arrayValue);
+	//keep a reference to loaded bodies
+	this->loadedBodyMap.clear();
 
+	//keep a reference to every body according to ID
+	this->bodyMap.clear();
+
+	//keep track of all the joints inside the system
+	this->boneList.clear();
+
+	//we need to keep track of all our muscles too
+	this->muscleList.clear();
+
+
+	//set default size
 	currentSize = b2Vec2(200, 150);
-
 
 	// Define the gravity vector.
 	b2Vec2 gravity(0.0f, -15.0f);
@@ -272,10 +288,7 @@ IESoRWorld::IESoRWorld()
 	// Call the body factory which allocates memory for the ground body
 	// from a pool and creates the ground box shape (also from a pool).
 	// The body is also added to the world.
-	b2Body* groundBody = this->addBodyToWorld("ground", &groundBodyDef);//this->world->CreateBody(&groundBodyDef);
-
-	//b2Body* groundBody = this->world->CreateBody(&groundBodyDef);
-
+	b2Body* groundBody = this->addBodyToWorld("ground", &groundBodyDef);
 
 	// Define the ground box shape.
 	b2PolygonShape groundBox;
@@ -285,75 +298,227 @@ IESoRWorld::IESoRWorld()
 
 	// Add the ground fixture to the ground body.
 	this->addShapeToBody(groundBody, &groundBox, 0.0f);
-	//groundBody->CreateFixture(&groundBox, 0.0f);
+}
 
-	// b2Vec2 canvas(200, 150);
-	//this->loadBodyIntoWorld(inBody, canvas);
+void IESoRWorld::clearWorld()
+{
+	//get rid of all our joints 
+	//we now need to process all of our joints as well
+	b2Joint * J = this->world->GetJointList();
+
+	//no joints for you!
+	while(J != NULL)
+	{
+		J->SetUserData(NULL);
+
+		//destroy destroy destroy!!!
+		this->world->DestroyJoint(J);
+
+		//loop to the next object
+		J = J->GetNext();
+	}
+
+	//i want to see it all burn -- now the bodies
+	b2Body* B = this->world->GetBodyList();
+
+	//this is so diabolical 
+	while(B != NULL)
+	{
+		B->SetUserData(NULL);
+
+		//destroy destroy destroy!!!
+		this->world->DestroyBody(B);
+
+		//loop to the next object
+		B = B->GetNext();
+
+	}
+
+	//it's all gone, will we ever rebuild
+	delete this->world;
+
+	//Oh, that was quick, set it back up again!
+	this->initializeWorld();
+}
+
+IESoRWorld::IESoRWorld()
+{
+
+	this->initializeWorld();
+	// this->interpolation =0;
+	// accumulator = 0;
+	// desiredFPS = 60;
+	// simulationRate = 1.0 / desiredFPS;
+	// radians = 0;
+
+	// //if we need to simulate a certain amount of time, we refuse above a certain amount
+	// maxFrameSize = .35;
 
 
-	// Define the dynamic body. We set its position and call the body factory.
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	bodyDef.position.Set(0.0f, 24.0f);
+	// //this->bodyList = new vector<PhysicsID*>();
+	// //this->shapeList = new vector<PhysicsID*>();
+	// //this->bodyList = new Json::Value(Json::arrayValue);
+	// //this->shapeList = new Json::Value(Json::arrayValue);
 
-	//add body to world using definition
-	// b2Body* body = this->addBodyToWorld("rect1", &bodyDef);
+	// currentSize = b2Vec2(200, 150);
 
-	// Define another box shape for our dynamic body.
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(5.0f, 5.0f);
 
-	// Define the dynamic body fixture.
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
-	fixtureDef.restitution = .5;
+	// // Define the gravity vector.
+	// b2Vec2 gravity(0.0f, -15.0f);
 
-	// Set the box density to be non-zero, so it will be dynamic.
-	fixtureDef.density = 1.0f;
+	// // Construct a world object, which will hold and simulate the rigid bodies.
+	// this->world = new b2World(gravity);
+	// this->world->SetAutoClearForces(false);
 
-	// Override the default friction.
-	fixtureDef.friction = 0.3f;
+	// // Define the ground body.
+	// b2BodyDef groundBodyDef;
+	// groundBodyDef.type = b2_staticBody;
+	// groundBodyDef.position.Set(0.0f, -18.0f);
 
-	// Add the shape to the body.
-	// this->addShapeToBody(body, &fixtureDef);
+	// // Call the body factory which allocates memory for the ground body
+	// // from a pool and creates the ground box shape (also from a pool).
+	// // The body is also added to the world.
+	// b2Body* groundBody = this->addBodyToWorld("ground", &groundBodyDef);//this->world->CreateBody(&groundBodyDef);
+
+	// //b2Body* groundBody = this->world->CreateBody(&groundBodyDef);
+
+
+	// // Define the ground box shape.
+	// b2PolygonShape groundBox;
+
+	// // The extents are the half-widths of the box.
+	// groundBox.SetAsBox(350.0, 10.0);
+
+	// // Add the ground fixture to the ground body.
+	// this->addShapeToBody(groundBody, &groundBox, 0.0f);
+	// //groundBody->CreateFixture(&groundBox, 0.0f);
+
+	// // b2Vec2 canvas(200, 150);
+	// //this->loadBodyIntoWorld(inBody, canvas);
+
+
+	// // Define the dynamic body. We set its position and call the body factory.
+	// b2BodyDef bodyDef;
+	// bodyDef.type = b2_dynamicBody;
+	// bodyDef.position.Set(0.0f, 24.0f);
+
+	// //add body to world using definition
+	// // b2Body* body = this->addBodyToWorld("rect1", &bodyDef);
+
+	// // Define another box shape for our dynamic body.
+	// b2PolygonShape dynamicBox;
+	// dynamicBox.SetAsBox(5.0f, 5.0f);
+
+	// // Define the dynamic body fixture.
+	// b2FixtureDef fixtureDef;
+	// fixtureDef.shape = &dynamicBox;
+	// fixtureDef.restitution = .5;
+
+	// // Set the box density to be non-zero, so it will be dynamic.
+	// fixtureDef.density = 1.0f;
+
+	// // Override the default friction.
+	// fixtureDef.friction = 0.3f;
+
+	// // Add the shape to the body.
+	// // this->addShapeToBody(body, &fixtureDef);
 	
-	// Define the circle body. We set its position and call the body factory.
-	b2BodyDef cDef;
-	cDef.type = b2_dynamicBody;
-	cDef.position.Set(10.0f, 24.0f);
+	// // Define the circle body. We set its position and call the body factory.
+	// b2BodyDef cDef;
+	// cDef.type = b2_dynamicBody;
+	// cDef.position.Set(10.0f, 24.0f);
 
-	//add body to world using definition
-	// body = this->addBodyToWorld("circleTest", &cDef);
+	// //add body to world using definition
+	// // body = this->addBodyToWorld("circleTest", &cDef);
 
-	// Define another box shape for our dynamic body.
-	b2CircleShape dCircle;
-	dCircle.m_radius = 5.0;
+	// // Define another box shape for our dynamic body.
+	// b2CircleShape dCircle;
+	// dCircle.m_radius = 5.0;
 
-	// Define the dynamic body fixture.
-	b2FixtureDef circleDef;
-	circleDef.shape = &dCircle;
-	circleDef.restitution = .5;
+	// // Define the dynamic body fixture.
+	// b2FixtureDef circleDef;
+	// circleDef.shape = &dCircle;
+	// circleDef.restitution = .5;
 
-	// Set the box density to be non-zero, so it will be dynamic.
-	circleDef.density = 1.0f;
+	// // Set the box density to be non-zero, so it will be dynamic.
+	// circleDef.density = 1.0f;
 
-	// Override the default friction.
-	circleDef.friction = 0.3f;
+	// // Override the default friction.
+	// circleDef.friction = 0.3f;
 
-	// Add the shape to the body.
-	// this->addShapeToBody(body, &circleDef);
+	// // Add the shape to the body.
+	// // this->addShapeToBody(body, &circleDef);
 
 
 
-	//Add some forces!
-	//body->ApplyAngularImpulse(.4, true);
+	// //Add some forces!
+	// //body->ApplyAngularImpulse(.4, true);
 	
-	// body->ApplyTorque(150, true);
-	b2Vec2 pulse(70, 0);
-	b2Vec2 o(0,3);
+	// // body->ApplyTorque(150, true);
+	// b2Vec2 pulse(70, 0);
+	// b2Vec2 o(0,3);
 	// body->ApplyLinearImpulse(pulse, o, true);
 
 }
+
+Json::Value IESoRWorld::jBodyCenterOfMass()
+{
+	//ready for x and y calculations
+	double x = 0; double y = 0;
+
+	double bodyCount = 0.0;
+
+	//loop through loaded body map
+	for (std::map<std::string,b2Body*>::iterator it=loadedBodyMap.begin(); it!=loadedBodyMap.end(); ++it)
+    {
+    	b2Body* body = it->second;
+
+    	b2CircleShape* circle = (b2CircleShape*)body->GetFixtureList()->GetShape();
+
+    	//some voodoo math here -- basically correct for the shape being all wacky and the body contorted
+    	b2Vec2 v = b2Mul(body->GetTransform(), circle->m_p);
+
+    	// printf("COM calc: (%f, %f)\n", v.x, v.y);
+
+    	//add the x
+    	x += v.x;
+
+    	//add the y
+    	y += v.y;
+
+    	bodyCount += 1.0;
+    	//done!
+	}
+
+	//nothing to see here -- if you're 0 bodies -- bump to one for the division
+	if(bodyCount == 0.0)
+		bodyCount = 1.0;
+
+	//set up our json value to send back
+	Json::Value xy;
+
+	//store x and y
+	xy["x"] = x/bodyCount;
+	xy["y"] = y/bodyCount;
+
+	return xy;
+}
+
+//build it and they shall come
+std::string IESoRWorld::bodyCenterOfMass()
+{
+	//turn that from upside down, let's find our center of mass!
+	Json::Value xy = this->jBodyCenterOfMass();
+
+	//easy -- piece together the x and y coordinates in a json friendly way :)
+	return "{ \"x\": " + dubString(xy["x"].asDouble()) + ", \"y\": " + dubString(xy["y"].asDouble()) + "}";
+
+	 // var shape = body.GetFixtureList().GetShape();
+ 	// var cInfo = {center:b2Math.MulX(dBody.m_xf, circle.m_p) ,
+  //       radius:this.drawScale*circle.m_radius };
+
+}
+
 
 //converts a b2Vec point into a json object
 Json::Value positionToJSONValue(b2Vec2 vec)
@@ -614,7 +779,7 @@ std::vector<Json::Value> IESoRWorld::getBodyEntities(Json::Value& inBody, b2Vec2
 	double canvasWidth = widthHeight.x;
 	double canvasHeight = widthHeight.y;
 
-	printf(" Widht %f, height: %f \n", canvasWidth, canvasHeight);
+	// printf(" Widht %f, height: %f \n", canvasWidth, canvasHeight);
 
 	//Grab an array of nodes from our json object
 	Json::Value oNodes = inBody["nodes"];
@@ -642,6 +807,10 @@ std::vector<Json::Value> IESoRWorld::getBodyEntities(Json::Value& inBody, b2Vec2
     double minX = canvasWidth; double maxX = 0.0f;
     double minY = canvasHeight; double maxY = 0.0f;
 
+    // printf("Pre-y height: %f, max: %f, min: %f\n", (maxY - minY), maxY, minY);
+    // printf("Pre-y node count: %d\n", oNodes.size());
+
+
 	//We loop through all of our nodes
 	for (int i=0; i < oNodes.size(); i++)
 	{
@@ -651,6 +820,9 @@ std::vector<Json::Value> IESoRWorld::getBodyEntities(Json::Value& inBody, b2Vec2
 		//We pull 
 		double nodeX = nodeLocation["x"].asDouble();
         double nodeY = nodeLocation["y"].asDouble();
+
+        // printf("node %d (X,Y) : (%f, %f)\n", i, nodeX, nodeY);
+
 
 		//here we actually modify the x and y values to fit into a certain sized box depending on the initial screen size/physics world size
         xScaled = (nodeX)/divideForMax* maxAllowedWidth;
@@ -667,9 +839,15 @@ std::vector<Json::Value> IESoRWorld::getBodyEntities(Json::Value& inBody, b2Vec2
         minY = min(minY, yScaled);
         maxY = max(maxY, yScaled);
 
+        // printf("Y seen: %f\n", yScaled);
+
         //need to increment the body id so we don't overwrite previous object
         bodyID++;
     }
+
+    // printf("\n\nX width: %f, max: %f, min: %f\n", (maxX - minX), maxX, minX);
+    // printf("\n\nY height: %f, max: %f, min: %f\n", (maxY - minY), maxY, minY);
+
 	
 	//We use movex, movey to center our creature in world space after creation 
     double moveX = (maxX - minX) / 2.0;
@@ -909,31 +1087,36 @@ std::map<std::string, double> IESoRWorld::loadBodyIntoWorld(Json::Value& inBody)
     //take our current size as the size to add entities into the space
     b2Vec2 widthHeight = currentSize;
 
-    printf("Body prep: %i, nodeCount: %i, connCount: %i \n", 
-    	oBodyCount, 
-    	inBody["nodes"].size(), 
-    	inBody["connections"].size());
+    // printf("Body prep: %i, nodeCount: %i, connCount: %i \n", 
+    // 	oBodyCount, 
+    // 	inBody["nodes"].size(), 
+    // 	inBody["connections"].size());
 
 	//here we use our body information to create all the necessary body additions to the world
     vector<Json::Value> entities = getBodyEntities(inBody, widthHeight, morphology);
 
-	//we'll quickly map and ID into a json point value
-	map<string, Json::Value> entityMap;
-    int cnt=0;
-	//this was we can access locations by the bodyID while determining connection distance
+    //push our bodies into the system so that our joints have bodies to connect to
+	this->setBodies(&entities);
+
+	//simple holder for our entities
+	std::map<string, Json::Value> entityMap;
+
+	//now loop through our created bodies, and use our body ids to get all of our nodes
 	for (std::vector<Json::Value>::iterator it = entities.begin() ; it != entities.end(); ++it)
 	{
 		Json::Value e = *it;
-		printf("bID %s \n", e["bodyID"].asString().c_str());
-		entityMap[e["bodyID"].asString()] = e;
-		cnt++;
+
+		//pull our body idenifier from the entities object
+		std::string bID  = e["bodyID"].asString();
+
+		//story the loaded node in the loadedBodyMap
+		this->loadedBodyMap[bID] = this->bodyMap[bID];
+
+		//looking to map this body id to the entity itself for later reference
+		//we'll quickly map and ID into a json point value
+		//entity map represent all of our bodies!
+		entityMap[bID] = e;	
 	}
-
-    printf("Body Map prepared: %i \n", cnt);
-
-
-    //push our bodies into the system so that our joints have bodies to connect to
-	this->setBodies(&entities);
 
 	//Did we use LEO to calculate our body information -- affects the indexing procedure
 	bool useLEO = inBody["useLEO"].asBool();
@@ -948,28 +1131,28 @@ std::map<std::string, double> IESoRWorld::loadBodyIntoWorld(Json::Value& inBody)
 	//mass = # of nodes + length of connections
 	double connectionDistanceSum = 0.0;
 
-    printf("Conns to eval: %i \n", connections.size());
+    // printf("Conns to eval: %i \n", connections.size());
     int connSize = connections.size();
 
 	//loop through all our connections
 	for(int i=0; i < connSize; i++)
 	{
-		printf("Conn %i start \n", i);
+		// printf("Conn %i start \n", i);
 		//grab connection from our array
 		Json::Value connectionObject = connections[i];
 		Json::Value cppnOutputs = connectionObject["cppnOutputs"];
 
 		Json::StyledWriter write;
 
-    	printf("Conn to eval: %s sID: %i, tID: %i \n", 
-    		write.write(connectionObject).c_str(),
-    		connectionObject["sourceID"].asInt64(),
-    		connectionObject["targetID"].asInt64());
+    	// printf("Conn to eval: %s sID: %i, tID: %i \n", 
+    	// 	write.write(connectionObject).c_str(),
+    	// 	connectionObject["sourceID"].asInt64(),
+    	// 	connectionObject["targetID"].asInt64());
 
 		long sID = connectionObject["sourceID"].asInt64();//atoi(connectionObject["sourceID"].asString().c_str());
 		long tID = connectionObject["targetID"].asInt64();//atoi(connectionObject["targetID"].asString().c_str());
 
-    	printf("Conn to eval: %i - %i \n", sID, tID);
+    	// printf("Conn to eval: %i - %i \n", sID, tID);
 
 
 		//To identify a given object in the physical world, we need to start with the current body count, and add the source id number
@@ -1008,7 +1191,7 @@ std::map<std::string, double> IESoRWorld::loadBodyIntoWorld(Json::Value& inBody)
 			//this will hold our custom props for the distance/muscle joints
 			Json::Value props;
 
-			printf("Amp: %d, cutoff: %d \n", amp, amplitudeCutoff);
+			// printf("Amp: %d, cutoff: %d \n", amp, amplitudeCutoff);
 
             if (amp < amplitudeCutoff)
 				this->addDistanceJoint(sourceID, targetID, props);//, {frequencyHz: 3, dampingRatio:.3});
@@ -1038,6 +1221,14 @@ std::map<std::string, double> IESoRWorld::loadBodyIntoWorld(Json::Value& inBody)
 
 	//add the concept of mass
 	morphology["mass"] = morphology["totalNodes"] + connectionDistanceSum/2.0f;
+
+	//but we can do better!
+	//we can get the current center of mass
+	Json::Value com = this->jBodyCenterOfMass();
+
+	//stash our center of mass, yo
+	morphology["comX"] =  com["x"].asDouble();
+	morphology["comY"] =  com["y"].asDouble();
 
 	//remove the concept of totalNodes since we have mass
 	//morphology should now have width/height, startX/startY, and mass
