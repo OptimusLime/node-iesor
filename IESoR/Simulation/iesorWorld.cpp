@@ -274,7 +274,7 @@ void IESoRWorld::initializeWorld()
 	currentSize = b2Vec2(200, 150);
 
 	// Define the gravity vector.
-	b2Vec2 gravity(0.0f, -15.0f);
+	b2Vec2 gravity(0.0f, -25.0f);
 
 	// Construct a world object, which will hold and simulate the rigid bodies.
 	this->world = new b2World(gravity);
@@ -1229,6 +1229,11 @@ std::map<std::string, double> IESoRWorld::loadBodyIntoWorld(Json::Value& inBody)
 	//stash our center of mass, yo
 	morphology["comX"] =  com["x"].asDouble();
 	morphology["comY"] =  com["y"].asDouble();
+
+
+	//let it be known the size for normalization
+	morphology["maxWidth"] =  currentSize.x;
+	morphology["maxHeight"] =  currentSize.y;
 
 	//remove the concept of totalNodes since we have mass
 	//morphology should now have width/height, startX/startY, and mass
